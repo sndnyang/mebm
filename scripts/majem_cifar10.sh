@@ -14,4 +14,3 @@ python train_maebm.py --dataset cifar10 \
  --l2_coeff 0.5   \
  --uncond \
  --gpu-id 0
-:
