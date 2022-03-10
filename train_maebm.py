@@ -294,18 +294,18 @@ def main(arg):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Manifold-Aware Energy Based Models")
-    parser.add_argument("--dataset", type=str, default="cifar100", choices=["cifar10", "svhn", "cifar100", 'tinyimagenet', 'img32'])
-    parser.add_argument("--data_root", type=str, default="../data")
+    parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "svhn", "cifar100", 'tinyimagenet', 'img32'])
+    parser.add_argument("--data_root", type=str, default="./data")
     # optimization
     parser.add_argument("--lr", type=float, default=0.1)
-    parser.add_argument("--decay_epochs", nargs="+", type=int, default=[120, 150, 180, 210, 240], help="decay learning rate by decay_rate at these epochs")
+    parser.add_argument("--decay_epochs", nargs="+", type=int, default=[60, 120, 180], help="decay learning rate by decay_rate at these epochs")
     parser.add_argument("--decay_rate", type=float, default=.2, help="learning rate decay multiplier")
     parser.add_argument("--clf_only", action="store_true", help="If set, then only train the classifier")
     parser.add_argument("--labels_per_class", type=int, default=-1,
                         help="number of labeled examples per class, if zero then use all labels")
     parser.add_argument("--optimizer", choices=["adam", "sgd"], default="sgd")
     parser.add_argument("--batch_size", type=int, default=64)
-    parser.add_argument("--n_epochs", type=int, default=250)
+    parser.add_argument("--n_epochs", type=int, default=200)
     parser.add_argument("--warmup_iters", type=int, default=-1,
                         help="number of iters to linearly increase learning rate, if -1 then no warmmup")
     # loss weighting
