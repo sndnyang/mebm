@@ -218,7 +218,6 @@ def main(arg):
                 l_p_x += arg.l2_coeff * (fp ** 2 + fq ** 2)
 
                 loss += arg.px * l_p_x
-                dis_loss = 0
 
                 # break if the loss diverged...easier for poppa to run experiments this way
                 if loss.abs().item() > 1e5:
@@ -233,7 +232,7 @@ def main(arg):
                     arg.writer.add_scalar('Train/CD', (fp - fq).item(), cur_iter)
 
                 if cur_iter % arg.print_every == 0:
-                    print('{} P(x) | {}:{:>d} f(x_p_d)={:>6.4f} f(x_q)={:>6.4f} d={:>6.4f}, dis:{:>5.4f}'.format(arg.pid, epoch, i, fp, fq, fp - fq, dis_loss))
+                    print('{} P(x) | {}:{:>d} f(x_p_d)={:>6.4f} f(x_q)={:>6.4f} d={:>6.4f}'.format(arg.pid, epoch, i, fp, fq, fp - fq))
                     if args.print_every == 1:
                         print('Neg min={:>6.4f}, max={:>6.4f}, Pos min={:>6.4f}, max={:>6.4f}'.format(fq_all.min().item(), fq_all.max().item(), fp_all.min().item(), fp_all.max().item()))
                         print('Neg avg={:>6.4f}, Pos avg={:>6.4f}'.format(fq_all.mean().item(), fp_all.mean().item()))
