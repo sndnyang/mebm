@@ -53,16 +53,11 @@ def init_random(args, bs):
     return t.FloatTensor(bs, n_ch, im_sz, im_sz).uniform_(-1, 1)
 
 
-def get_model_and_buffer(args, device, teacher=False):
+def get_model_and_buffer(args, device):
     model_cls = F if args.uncond else CCF
     f = model_cls(args.depth, args.width, args.norm, dropout_rate=args.dropout_rate, n_classes=args.n_classes, model=args.model, args=args)
     if not args.uncond:
         assert args.buffer_size % args.n_classes == 0, "Buffer size must be divisible by args.n_classes"
-
-    if teacher:
-        ckpt_dict = t.load(args.path_t)
-        f.load_state_dict(ckpt_dict["model_state_dict"])
-        replay_buffer = None
 
     elif args.load_path is None:
         # make replay buffer
