@@ -123,8 +123,8 @@ def init_from_centers(args):
         size = [3, 64, 64]
     else:
         size = [3, 32, 32]
-    centers = t.load('../%s_mean_one.pt' % args.dataset)
-    covs = t.load('../%s_cov_one.pt' % args.dataset)
+    centers = t.load('./%s_mean_one.pt' % args.dataset)
+    covs = t.load('./%s_cov_one.pt' % args.dataset)
 
     buffer = []
     # for i in range(args.n_classes):

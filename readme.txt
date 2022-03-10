@@ -4,12 +4,11 @@
 ## Usage
 
 1. pip install -r requirements.txt
-2.
-
+2. python one_center.py --dataset cifar10  # generate GM's mu and sigma
 
 ### Training
 
-To train a MA-EBM model on CIFAR10 as in the paper, please refer to scripts/maebm_cifar10.sh
+To train an MA-EBM model on CIFAR10 as in the paper, please refer to scripts/maebm_cifar10.sh
 
 python train_maebm.py --dataset cifar10 \
      --lr .1 --optimizer sgd \
@@ -28,7 +27,7 @@ python train_maebm.py --dataset cifar10 \
      --gpu-id 0
 
 
-To train a MA-JEM model on CIFAR10 as in the paper, please refer to scripts/majem_cifar10.sh
+To train an MA-JEM model on CIFAR10 as in the paper, please refer to scripts/majem_cifar10.sh
 
 
 python train_maebm.py --dataset cifar10 \

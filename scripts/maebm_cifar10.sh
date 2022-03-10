@@ -9,8 +9,11 @@ python train_maebm.py --dataset cifar10 \
  --print_every 100 \
  --n_epochs 200 --decay_epochs 60 120 180 \
  --n_steps 2     \
- --sgld_lr 1   \
- --sgld_std 0.001 \
- --l2_coeff 0.5   \
+ --sgld_lr 1     \
+ --sgld_std 0.0  \
+ --l2_coeff 0.1  \
  --uncond \
  --gpu-id 6
+
+# n_steps=2 (K=2) is very small, set  l2_coeff 0.1 and sgld_std 0
+# K>=5,  l2_coeff=0.5, sgld_std=0.001
