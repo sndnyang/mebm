@@ -29,7 +29,6 @@ python train_maebm.py --dataset cifar10 \
 
 To train an MA-JEM model on CIFAR10 as in the paper, please refer to scripts/majem_cifar10.sh
 
-
 python train_maebm.py --dataset cifar10 \
      --lr .1 --optimizer sgd \
      --px 1.0 --pyx 1.0 \
@@ -46,6 +45,9 @@ python train_maebm.py --dataset cifar10 \
      --uncond \
      --gpu-id 0
 
+
+To train an MA-EBM model on CelebA-HQ as in the paper, please refer to scripts/maebm_cifar10.sh
+The images should be stored in args.data_root/train/*/xxx.jpg
 
 ### Evaluation
 

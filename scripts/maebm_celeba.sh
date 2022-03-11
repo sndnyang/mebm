@@ -1,4 +1,6 @@
 
+# 30000 images, stored in  celeba/data128x128/train/*/xxx.jpg
+
 python train_maebm_celeba.py --dataset=celeba128 --data_root celeba/data128x128/ \
       --lr=.02 --optimizer=sgd --px=1.0 --width=2 --depth=28 \
       --warmup_iters=1000 \
