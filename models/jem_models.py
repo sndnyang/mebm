@@ -59,7 +59,7 @@ def get_model_and_buffer(args, device):
     if not args.uncond:
         assert args.buffer_size % args.n_classes == 0, "Buffer size must be divisible by args.n_classes"
 
-    elif args.load_path is None:
+    if args.load_path is None:
         # make replay buffer
         replay_buffer = init_random(args, args.buffer_size)
     else:
