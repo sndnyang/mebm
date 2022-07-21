@@ -1,4 +1,4 @@
-# MA-EBM
+# MA-EBM: Fast and Stable Training of Energy-Based Models
 
 
 ## Usage
