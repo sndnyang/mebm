@@ -8,7 +8,6 @@ import os.path as osp
 import os
 import numpy as np
 import time
-from scipy.misc import imread, imresize
 from torchvision.datasets import CIFAR10, MNIST, SVHN, CIFAR100, ImageFolder
 from torchvision import transforms
 from Task.imagenet_preprocessing import ImagenetPreprocessor
@@ -170,39 +169,6 @@ class TFImagenetLoader(Dataset):
 
     def __len__(self):
         return self.im_length
-
-
-class CelebA(Dataset):
-
-    def __init__(self):
-        self.path = "/root/data/img_align_celeba"
-        self.ims = os.listdir(self.path)
-        self.ims = [osp.join(self.path, im) for im in self.ims]
-
-    def __len__(self):
-        return len(self.ims)
-
-    def __getitem__(self, index):
-        FLAGS = self.FLAGS
-        FLAGS.single = False
-        label = 1
-
-        if FLAGS.single:
-            index = 0
-
-        path = self.ims[index]
-        im = imread(path)
-        im = imresize(im, (32, 32))
-        image_size = 32
-        im = im / 255.
-
-        if FLAGS.datasource == 'default':
-            im_corrupt = im + 0.3 * np.random.randn(image_size, image_size, 3)
-        elif FLAGS.datasource == 'random':
-            im_corrupt = np.random.uniform(
-                0, 1, size=(image_size, image_size, 3))
-
-        return im_corrupt, im, label
 
 
 class Cifar10(Dataset):

@@ -23,7 +23,7 @@ import gzip, pickle
 import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
-from scipy.misc import imread
+from matplotlib.pyplot import imread
 from scipy import linalg
 import pathlib
 import urllib

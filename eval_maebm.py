@@ -73,7 +73,7 @@ def init_from_centers(arg):
     return init_random(arg, bs)
 
 
-def sample_p_0(replay_buffer, bs, y=None):
+def sample_p_0(replay_buffer, bs, y=None, args=None):
     if len(replay_buffer) == 0:
         return init_random(args, bs), []
     buffer_size = len(replay_buffer) if y is None else len(replay_buffer) // n_classes
@@ -101,7 +101,7 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, args=None):
     # get batch size
     bs = args.batch_size if y is None else y.size(0)
     # generate initial samples and buffer inds of those samples (if buffer is used)
-    init_sample, buffer_inds = sample_p_0(replay_buffer, bs=bs, y=y)
+    init_sample, buffer_inds = sample_p_0(replay_buffer, bs=bs, y=y, args=args)
     x_k = t.autograd.Variable(init_sample, requires_grad=True).to(args.device)
     # sgld
 
@@ -439,7 +439,6 @@ def test_clf(f, args, device):
 
     loss = np.mean(losses)
     correct = np.mean(corrects)
-    t.save({"losses": losses, "corrects": corrects, "pys": pys}, os.path.join(args.save_dir, "vals.pt"))
     print('loss %.5g,  accuracy: %g%%' % (loss, correct * 100))
     return correct
 

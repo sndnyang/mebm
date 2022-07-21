@@ -9,6 +9,7 @@ tqdm==4.57.0
 # inception score and FID require the old version.
 numpy==1.17.4
 scipy==0.19.1
+# I change scipy.misc. imread  in fid.py to matplotlib.pyplot.imread, then we can use latest numpy and scipy
 
 # Inception score and FID
 # tensorflow 1.12 - 1.15 should work
