@@ -56,3 +56,7 @@ To evaluate the classifier (on CIFAR10), please refer to scripts/eval_ebm.sh
 To evaluate the FID in the replay buffer (on CIFAR10):
 
 python eval_maebm.py --eval fid --load_path /PATH/TO/YOUR/MODEL.pt --ratio 0.9
+
+To generate new samples
+
+python eval_maebm.py --eval gen --buffer_size 100 --batch_size 100 --n_sample_steps 400  --uncond --n_steps 1 --print_every 10 --load_path $1

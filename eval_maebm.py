@@ -13,17 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import utils
 import torch as t, torch.nn as nn
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 import torchvision as tv, torchvision.transforms as tr
-import sys
 import argparse
-import numpy as np
 from ExpUtils import *
 from models.jem_models import F, CCF
-from utils import plot, Hamiltonian
+from utils import plot
+from one_center import ds_size, ds_grain, upsample, downsample
 from Task.eval_buffer import cond_is_fid
 
 # Sampling
@@ -38,52 +35,47 @@ correct = 0
 print = wlog
 
 
-def init_random(bs):
-    return t.FloatTensor(bs, 3, 32, 32).uniform_(-1, 1)
-
-
 conditionals = []
 
 
-def init_from_centers(args):
+def init_random(args, bs):
+    global conditionals
+    n_ch = 3
+    im_sz = ds_size(args)
+    step = ds_grain(im_sz)
+    size = [3, im_sz // step, im_sz // step]
+    new = t.zeros(bs, n_ch, im_sz // step, im_sz // step)
+    for i in range(bs):
+        index = np.random.randint(len(conditionals))
+        dist = conditionals[index]
+        new[i] = dist.sample().view(size)
+    return upsample(t.clamp(new, -1, 1), im_sz)
+
+
+def init_from_centers(arg):
     global conditionals
     from torch.distributions.multivariate_normal import MultivariateNormal
-    bs = args.buffer_size
-    if args.dataset == 'svhn':
+    bs = arg.buffer_size
+    if arg.dataset == 'celeba128':
         size = [3, 28, 28]
     else:
         size = [3, 32, 32]
-    if args.dataset == 'cifar_test':
-        args.dataset = 'cifar10'
-    centers = t.load('../%s_mean.pt' % args.dataset)
-    covs = t.load('../%s_cov.pt' % args.dataset)
+    if arg.dataset == 'cifar_test':
+        arg.dataset = 'cifar10'
+    centers = t.load('./%s_mean_one.pt' % arg.dataset)
+    covs = t.load('./%s_cov_one.pt' % arg.dataset)
 
-    buffer = []
-    for i in range(args.n_classes):
-        mean = centers[i].to(args.device)
-        cov = covs[i].to(args.device)
-        dist = MultivariateNormal(mean, covariance_matrix=cov + 1e-4 * t.eye(int(np.prod(size))).to(args.device))
-        buffer.append(dist.sample((bs // args.n_classes, )).view([bs // args.n_classes] + size).cpu())
-        conditionals.append(dist)
-    return t.clamp(t.cat(buffer), -1, 1)
+    mean = centers.to(arg.device)
+    cov = covs.to(arg.device)
+    dist = MultivariateNormal(mean, covariance_matrix=cov + 1e-4 * t.eye(int(np.prod(size))).to(arg.device))
+    conditionals.append(dist)
 
-
-def init_inform(args, bs):
-    global conditionals
-    n_ch = 3
-    size = [3, 32, 32]
-    im_sz = 32
-    new = t.zeros(bs, n_ch, im_sz, im_sz)
-    for i in range(bs):
-        index = np.random.randint(args.n_classes)
-        dist = conditionals[index]
-        new[i] = dist.sample().view(size)
-    return t.clamp(new, -1, 1).cpu()
+    return init_random(arg, bs)
 
 
 def sample_p_0(replay_buffer, bs, y=None):
     if len(replay_buffer) == 0:
-        return init_random(bs), []
+        return init_random(args, bs), []
     buffer_size = len(replay_buffer) if y is None else len(replay_buffer) // n_classes
     if buffer_size > bs:
         inds = t.randint(0, buffer_size, (bs,))
@@ -94,71 +86,36 @@ def sample_p_0(replay_buffer, bs, y=None):
         inds = y.cpu() * buffer_size + inds
         assert not args.uncond, "Can't drawn conditional samples without giving me y"
     buffer_samples = replay_buffer[inds]
-    random_samples = init_inform(args, bs)
+    random_samples = init_random(args, bs)
     choose_random = (t.rand(bs) < args.reinit_freq).float()[:, None, None, None]
     samples = choose_random * random_samples + (1 - choose_random) * buffer_samples
     return samples.to(args.device), inds
 
 
-def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None):
+def sample_q(f, replay_buffer, y=None, n_steps=10, args=None):
     """this func takes in replay_buffer now so we have the option to sample from
     scratch (i.e. replay_buffer==[]).  See test_wrn_ebm.py for example.
     """
 
-    # f.eval()
+    f.train()
     # get batch size
     bs = args.batch_size if y is None else y.size(0)
     # generate initial samples and buffer inds of those samples (if buffer is used)
     init_sample, buffer_inds = sample_p_0(replay_buffer, bs=bs, y=y)
     x_k = t.autograd.Variable(init_sample, requires_grad=True).to(args.device)
     # sgld
-    if args.in_steps > 0:
-        Hamiltonian_func = Hamiltonian(f.f.layer_one)
 
     eps = 1
     for it in range(n_steps):
-        energies, h, _ = f(x_k, y=y)
+        energies = f(x_k, y=y)[0]
         e_x = energies.sum()
-        # wgrad = f.f.conv1.weight.grad
         eta = t.autograd.grad(e_x, [x_k], retain_graph=True)[0]
-        # e_x.backward(retain_graph=True)
-        # eta = x_k.grad.detach()
-        # f.f.conv1.weight.grad = wgrad
-
-        if in_steps > 0:
-            p = 1.0 * f.f.layer_one_out.grad
-            p = p.detach()
-
-        tmp_inp = x_k.data
-        tmp_inp.requires_grad_()
-        if args.sgld_lr > 0:
-            # if in_steps == 0: use SGLD other than PYLD
-            # if in_steps != 0: combine outter and inner gradients
-            # default 0
-            if eps > 0:
-                eta = t.clamp(eta, -eps, eps)
-            tmp_inp = x_k + eta * args.sgld_lr
-            if eps > 0:
-                tmp_inp = t.clamp(tmp_inp, -1, 1)
-
-        for i in range(in_steps):
-
-            H = Hamiltonian_func(tmp_inp, p)
-
-            eta_grad = t.autograd.grad(H, [tmp_inp], only_inputs=True, retain_graph=True)[0]
-            if eps > 0:
-                eta_step = t.clamp(eta_grad, -eps, eps)
-            else:
-                eta_step = eta_grad * args.pyld_lr
-
-            tmp_inp.data = tmp_inp.data + eta_step
-            if eps > 0:
-                tmp_inp = t.clamp(tmp_inp, -1, 1)
-
+        tmp_inp = x_k.data + eta * args.sgld_lr
         x_k.data = tmp_inp.data
 
         if args.sgld_std > 0.0:
             x_k.data += args.sgld_std * t.randn_like(x_k)
+        x_k.data = t.clamp(x_k.data, -1, 1)
 
     f.train()
     final_samples = x_k.detach()
@@ -170,11 +127,8 @@ def sample_q(f, replay_buffer, y=None, n_steps=10, in_steps=10, args=None):
 
 def uncond_samples(f, args, device, save=True):
 
-    if args.init == 'i':
-        init_from_centers(args)
-        replay_buffer = init_from_centers(args)
-    else:
-        replay_buffer = t.FloatTensor(args.buffer_size, 3, 32, 32).uniform_(-1, 1)
+    init_from_centers(args)
+    replay_buffer = init_random(args, args.buffer_size)
     for i in range(args.n_sample_steps):
         samples = sample_q(args, device, f, replay_buffer, i=i)
         if i % args.print_every == 0 and save:
@@ -272,10 +226,10 @@ def best_samples(f, replay_buffer, args, device, fresh=False):
 
 def new_samples(f, args, device, save=True):
     replay_buffer = init_from_centers(args)
+    print(replay_buffer.shape)
     plot('{}/samples_0.png'.format(args.save_dir), replay_buffer)
     for i in range(args.n_sample_steps):
-        # samples = sample_q(args, device, f, replay_buffer)
-        samples = sample_q(f, replay_buffer, n_steps=args.n_steps, in_steps=0, args=args)
+        samples = sample_q(f, replay_buffer, n_steps=args.n_steps, args=args)
 
         if i % 50 == 0:
             print(i)
@@ -284,10 +238,10 @@ def new_samples(f, args, device, save=True):
             plot('{}/samples_{}.png'.format(args.save_dir, i+1), samples)
             if args.print_every < 50:
                 continue
-            inc_score, std, fid = cond_is_fid(f, replay_buffer, args, device, ratio=100000)
-            print("sample more steps %d with %d" % (i, args.n_steps))
-            print("Inception score of {} with std of {}".format(inc_score, std))
-            print("FID of score {}".format(fid))
+            # inc_score, std, fid = cond_is_fid(f, replay_buffer, args, device, ratio=100000)
+            # print("sample more steps %d with %d" % (i, args.n_steps))
+            # print("Inception score of {} with std of {}".format(inc_score, std))
+            # print("FID of score {}".format(fid))
     inc_score, std, fid = cond_is_fid(f, replay_buffer, args, device, ratio=100000)
     print("final sample more steps %d with %d" % (args.n_sample_steps, args.n_steps))
     print("Inception score of {} with std of {}".format(inc_score, std))
@@ -604,8 +558,6 @@ if __name__ == "__main__":
     parser.add_argument("--init", type=str, default='i', help='r random, i inform')
     # EBM specific
     parser.add_argument("--n_steps", type=int, default=0)
-    parser.add_argument("--in_steps", type=int, default=0, help="number of steps of SGLD per iteration, 100 works for short-run, 20 works for PCD")
-    parser.add_argument("--in_lr", type=float, default=0.0)
     parser.add_argument("--width", type=int, default=10)
     parser.add_argument("--depth", type=int, default=28)
     parser.add_argument("--uncond", action="store_true")
