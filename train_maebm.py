@@ -215,7 +215,8 @@ def main(arg):
                 fq = fq_all.mean()
 
                 l_p_x = -(fp - fq)
-                l_p_x += arg.l2_coeff * (fp ** 2 + fq ** 2)
+                # l_p_x += arg.l2_coeff * (fp ** 2 + fq ** 2)
+                l_p_x += arg.l2_coeff * (torch.mean(fp_all ** 2) + fq ** 2)
 
                 loss += arg.px * l_p_x
 
@@ -272,8 +273,7 @@ def main(arg):
                     # try:
                     print('eval is, fid')
                     ratio = 0.1 if arg.pyx else 0.9
-                    inc_score, std, _ = cond_is_fid(f, replay_buffer, arg, device, ratio=ratio, eval='is')
-                    _, _, fid = cond_is_fid(f, replay_buffer, arg, device, ratio=0.9, eval='fid')
+                    inc_score, std, fid = cond_is_fid(f, replay_buffer, arg, device, ratio=ratio, eval='all')
                     if fid > 0:
                         prev_fid = fid
                     else:
