@@ -13,22 +13,21 @@ class F(nn.Module):
         self.f = wideresnet.Wide_ResNet(depth, width, norm=norm, dropout_rate=dropout_rate, dataset=args.dataset, num_classes=n_classes)
         self.energy_output = nn.Linear(self.f.last_dim, 1)
         self.class_output = nn.Linear(self.f.last_dim, n_classes)
-        # self.energy_point = nn.Parameter(t.zeros(1, self.f.last_dim), requires_grad=True)
 
     def feature(self, x):
-        penult_z = self.f(x)
-        return penult_z
+        h = self.f(x)
+        return h
 
     def forward(self, x, y=None):
-        penult_z = self.f(x)
-        logits = self.class_output(penult_z).squeeze()
-        energies = self.energy_output(penult_z).squeeze()
-        return energies, penult_z, logits
+        feats = self.f(x)
+        logits = self.class_output(feats)
+        energies = self.energy_output(feats).squeeze()
+        return energies, feats, logits
 
     def classify(self, x):
-        penult_z = self.f(x)
-        output = self.class_output(penult_z).squeeze()
-        return output, penult_z
+        h = self.f(x)
+        output = self.class_output(h).squeeze()
+        return output, h
 
 
 class CCF(F):
@@ -40,7 +39,6 @@ class CCF(F):
 
         if y is None:
             v = logits.logsumexp(1)
-            # print("log sum exp", v)
             return v, h, logits
         else:
             return t.gather(logits, 1, y[:, None]), h, logits
