@@ -86,7 +86,7 @@ class Wide_ResNet(nn.Module):
         self.bn1 = get_norm(nStages[3], self.norm)
 
         self.size = 32
-        if dataset in ['imagenet', 'img256', 'img128', 'img64', 'tinyimagenet', 'celeba128', 'celeba256']:
+        if dataset in ['imagenet', 'img256', 'img128', 'img64', 'tinyimagenet', 'celeba128', 'celeba256', 'stl10']:
             self.size = 64
         if self.size >= 64:
             self.layer4 = self._wide_layer(wide_basic, nStages[4], n, dropout_rate, stride=2, leak=leak)
@@ -121,5 +121,5 @@ class Wide_ResNet(nn.Module):
                 out = F.adaptive_avg_pool2d(out, 1)
             else:
                 out = F.avg_pool2d(out, 8)
-        out = out.view(out.size(0), -1)
+        out = out.view(out.shape[0], -1)
         return out

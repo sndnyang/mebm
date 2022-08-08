@@ -7,12 +7,14 @@ torchvision==0.6.1
 tqdm==4.57.0
 
 # inception score and FID require the old version.
-numpy==1.17.4
-scipy==0.19.1
+# numpy==1.17.4
+# scipy==0.19.1
 # I change scipy.misc. imread  in fid.py to matplotlib.pyplot.imread, then we can use latest numpy and scipy
+numpy==1.19.3
+scipy==1.5.4
 
 # Inception score and FID
 # tensorflow 1.12 - 1.15 should work
 # I suggest to install in conda environment
-tensorflow-gpu==1.15.0
+# tensorflow-gpu==1.15.0
 tensorboard==1.15.0

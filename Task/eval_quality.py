@@ -54,7 +54,9 @@ def eval_is_fid(images, dataset='cifar10', args=None):
     print('eval images num', images.shape, images.min(), images.max())
     px_dataset = TensorDataset(images.to(dtype=torch.uint8))
     target = f'{dataset}-train'
-    if dataset not in ['cifar10', 'stl10']:
+    if dataset in ['cifar_train', 'cifar_test']:
+        target = 'cifar10-train'
+    elif dataset not in ['cifar10', 'stl10']:
         target = load_dataset(args)
 
     metrics_dict = torch_fidelity.calculate_metrics(

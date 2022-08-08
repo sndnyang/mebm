@@ -13,8 +13,9 @@ def sqrt(x):
     return int(t.sqrt(t.Tensor([x])))
 
 
-def plot(p, x):
-    return tv.utils.save_image(t.clamp(x, -1, 1), p, normalize=True, nrow=sqrt(x.size(0)))
+def plot(p, x, rows=-1):
+    n = sqrt(x.size(0)) if rows == -1 else rows
+    return tv.utils.save_image(t.clamp(x, -1, 1), p, normalize=True, nrow=n)
 
 
 def makedirs(dirname):
@@ -319,3 +320,20 @@ def eval_classification(f, dload, set_name, epoch, args=None, wlog=None):
         else:
             args.writer.add_scalar('%s/Accuracy' % set_name, correct, epoch)
     return correct, loss
+
+
+def disable_running_stats(model):
+    def _disable(module):
+        if isinstance(module, nn.BatchNorm2d):
+            module.backup_momentum = module.momentum
+            module.momentum = 0
+
+    model.apply(_disable)
+
+
+def enable_running_stats(model):
+    def _enable(module):
+        if isinstance(module, nn.BatchNorm2d) and hasattr(module, "backup_momentum"):
+            module.momentum = module.backup_momentum
+
+    model.apply(_enable)
