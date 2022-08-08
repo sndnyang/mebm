@@ -6,25 +6,30 @@
 1. pip install -r requirements.txt
 2. python one_center.py --dataset cifar10  # generate GM's mu and sigma
 
+the pretrained model link https://drive.google.com/drive/folders/1akoGmrjnChUu0HcIVziq25k2PDKgdx6C?usp=sharing
+
 ### Training
 
 To train an MA-EBM model on CIFAR10 as in the paper, please refer to scripts/maebm_cifar10.sh
 
 python train_maebm.py --dataset cifar10 \
      --lr .1 --optimizer sgd \
-     --px 1.0 --pyx 0.0 \
+     --px 1.0 --pyx 1.0 \
+     --data_root ../../data \
      --sigma .0 --width 10 --depth 28 \
      --plot_uncond --warmup_iters 1000 \
      --model wrn \
      --norm batch \
      --print_every 100 \
      --n_epochs 200 --decay_epochs 60 120 180 \
-     --n_steps 2     \
+     --n_steps 5   \
      --sgld_lr 1   \
-     --sgld_std 0.001 \
+     --sgld_std 0.0 \
+     --no_fid       \
+     --no_wandb     \
      --l2_coeff 0.5   \
      --uncond \
-     --gpu-id 0
+     --gpu-id 3
 
 
 To train an MA-JEM model on CIFAR10 as in the paper, please refer to scripts/majem_cifar10.sh
@@ -40,7 +45,7 @@ python train_maebm.py --dataset cifar10 \
      --n_epochs 200 --decay_epochs 60 120 180 \
      --n_steps 5      \
      --sgld_lr 1   \
-     --sgld_std 0.001 \
+     --sgld_std 0.0 \
      --l2_coeff 0.5   \
      --uncond \
      --gpu-id 0
@@ -51,11 +56,24 @@ The images should be stored in args.data_root/train/*/xxx.jpg
 
 ### Evaluation
 
+Please check script/eval_all_in_one.sh
+
 To evaluate the classifier (on CIFAR10), please refer to scripts/eval_ebm.sh
+
+loss  |  accuracy
+------|-----------
+0.212 | 94.08
 
 To evaluate the FID in the replay buffer (on CIFAR10):
 
-python eval_maebm.py --eval fid --load_path /PATH/TO/YOUR/MODEL.pt --ratio 0.9
+python eval_maebm.py --eval fid --uncond --load_path /PATH/TO/YOUR/MODEL.pt --ratio 0.9
+
+ratio  |   IS | FID
+-------|------|---------
+0.9    | 8.31 | 9.87
+10000  | 8.18 | 10.38
+
+
 
 To generate new samples
 
