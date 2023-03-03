@@ -1,4 +1,4 @@
-# MA-EBM: Fast and Stable Training of Energy-Based Models
+# Energy-Based Models
 
 
 ## Usage
@@ -10,7 +10,7 @@ the pretrained model link https://drive.google.com/drive/folders/1akoGmrjnChUu0H
 
 ### Training
 
-To train an MA-EBM model on CIFAR10 as in the paper, please refer to scripts/maebm_cifar10.sh
+To train an M-EBM model on CIFAR10 as in the paper, please refer to scripts/maebm_cifar10.sh
 
 python train_maebm.py --dataset cifar10 \
      --lr .1 --optimizer sgd \
@@ -32,7 +32,7 @@ python train_maebm.py --dataset cifar10 \
      --gpu-id 3
 
 
-To train an MA-JEM model on CIFAR10 as in the paper, please refer to scripts/majem_cifar10.sh
+To train an M-JEM model on CIFAR10 as in the paper, please refer to scripts/majem_cifar10.sh
 
 python train_maebm.py --dataset cifar10 \
      --lr .1 --optimizer sgd \
@@ -51,7 +51,7 @@ python train_maebm.py --dataset cifar10 \
      --gpu-id 0
 
 
-To train an MA-EBM model on CelebA-HQ as in the paper, please refer to scripts/maebm_cifar10.sh
+To train an M-EBM model on CelebA-HQ as in the paper, please refer to scripts/maebm_cifar10.sh
 The images should be stored in args.data_root/train/*/xxx.jpg
 
 ### Evaluation
