@@ -8,7 +8,9 @@
 
 the pretrained model link https://drive.google.com/drive/folders/1akoGmrjnChUu0HcIVziq25k2PDKgdx6C?usp=sharing
 
-### Training
+## Training
+
+**Note:** when n_steps(K) is extremely small (1 or 2), l2_coeff doesn't help or leads a negative effect.
 
 To train an M-EBM model on CIFAR10 as in the paper, please refer to scripts/maebm_cifar10.sh
 
@@ -54,7 +56,7 @@ python train_maebm.py --dataset cifar10 \
 To train an M-EBM model on CelebA-HQ as in the paper, please refer to scripts/maebm_cifar10.sh
 The images should be stored in args.data_root/train/*/xxx.jpg
 
-### Evaluation
+## Evaluation
 
 Please check script/eval_all_in_one.sh
 
@@ -62,7 +64,7 @@ To evaluate the classifier (on CIFAR10), please refer to scripts/eval_ebm.sh
 
 loss  |  accuracy
 ------|-----------
-0.212 | 94.08
+0.212 |   94.08
 
 To evaluate the FID in the replay buffer (on CIFAR10):
 
@@ -75,6 +77,28 @@ ratio  |   IS | FID
 
 
 
-To generate new samples
+## generate new samples
 
-python eval_maebm.py --eval gen --buffer_size 100 --batch_size 100 --n_sample_steps 400  --uncond --n_steps 1 --print_every 10 --load_path $1
+```
+python eval_maebm.py --eval gen \
+       --buffer_size 100 \
+       --batch_size 100 \
+       --n_sample_steps 400  \
+       --uncond --n_steps 1 \
+       --print_every 10 \
+       --load_path $1
+```
+
+
+# Ref
+If you found this work useful and used it on your own research, please consider citing this paper.
+
+```
+@inproceedings{xiulong2023mebm,
+ author = {Xiulong Yang, Shihao Ji},
+ booktitle = {Pacific-Asia Conference on Knowledge Discovery and Data Mining (PAKDD)},
+ title = {M-EBM: Towards Understanding the Manifolds of Energy-Based Models},
+ url = {https://arxiv.org/abs/2303.04343},
+ year = {2023}
+}
+```
