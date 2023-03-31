@@ -14,6 +14,7 @@ the pretrained model link https://drive.google.com/drive/folders/1akoGmrjnChUu0H
 
 To train an M-EBM model on CIFAR10 as in the paper, please refer to scripts/maebm_cifar10.sh
 
+```bash
 python train_maebm.py --dataset cifar10 \
      --lr .1 --optimizer sgd \
      --px 1.0 --pyx 1.0 \
@@ -32,10 +33,12 @@ python train_maebm.py --dataset cifar10 \
      --l2_coeff 0.5   \
      --uncond \
      --gpu-id 3
+```
 
 
 To train an M-JEM model on CIFAR10 as in the paper, please refer to scripts/majem_cifar10.sh
 
+```bash
 python train_maebm.py --dataset cifar10 \
      --lr .1 --optimizer sgd \
      --px 1.0 --pyx 1.0 \
@@ -51,6 +54,7 @@ python train_maebm.py --dataset cifar10 \
      --l2_coeff 0.5   \
      --uncond \
      --gpu-id 0
+```
 
 
 To train an M-EBM model on CelebA-HQ as in the paper, please refer to scripts/maebm_cifar10.sh
@@ -88,6 +92,24 @@ python eval_maebm.py --eval gen \
        --print_every 10 \
        --load_path $1
 ```
+
+# t-SNE visualization
+
+Left one: refer to the paper
+
+Right figure: 
+```
+Using a non-final-epoch checkpoint of unconditional EBM trained on CIFAR-10 --- a final checkpoint should look similar
+to visualize the t-SNE of learned features from different classes (10 classes - 10 colors)
+
+The mixing of different classes may result in more 'manifold intrusion', an intuitive hypothesis. 
+```
+
+
+
+|  |  |
+|--|--|
+| ![all](https://github.com/sndnyang/mebm/blob/master/tsne.png)  | ![uncond_category](https://github.com/sndnyang/mebm/blob/master/uncond_categorial_tsne.png) |
 
 
 # Ref
